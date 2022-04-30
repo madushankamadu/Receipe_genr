@@ -1,19 +1,12 @@
 package com.example.recipegenerator;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -22,20 +15,45 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+
+    private static final String TAG = "chechthejson";
     private ImageView imageView;
     private Button selectBtn, uploadBtn, captureBtn;
     ActivityResultLauncher<String> mGetContent;
     ActivityResultLauncher<Intent> mGetCamera;
     private Bitmap bitmap;
+    public static List<Recipe> recipes;
+    private static final String url = "http://192.168.43.211/Android%20Tutorials/upload_image.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
         selectBtn = findViewById(R.id.select_btn);
         uploadBtn = findViewById(R.id.upload_btn);
         captureBtn = findViewById(R.id.capture_btn);
+        recipes =  new ArrayList<>();
+
+        // get the image from storage
 
         mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
             @Override
@@ -64,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        // start the camera
 
         mGetCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -112,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        // upload the image
 
 
         uploadBtn.setOnClickListener(new View.OnClickListener() {
@@ -131,30 +154,88 @@ public class MainActivity extends AppCompatActivity {
 
     private void uploadImage() {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,75, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, byteArrayOutputStream);
         byte[] imageInByte = byteArrayOutputStream.toByteArray();
-        String encodedImage =  Base64.encodeToString(imageInByte,Base64.DEFAULT);
+        String encodedImage = Base64.encodeToString(imageInByte, Base64.DEFAULT);
+        // Log.d("TAG", "uploadImage: "+encodedImage);
 
-        Call<ResponsePOJO> call = RetroClient.getInstance().getApi().uploadImage(encodedImage);
-        call.enqueue(new Callback<ResponsePOJO>() {
 
+        StringRequest request=new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(Call<ResponsePOJO> call, Response<ResponsePOJO> response) {
-                Toast.makeText(MainActivity.this, response.body().getRemarks(), Toast.LENGTH_SHORT).show();
+            public void onResponse(String response)
+            {
 
-                if(response.body().isStatus()){
+                Toast.makeText(getApplicationContext(),"wait for the result",Toast.LENGTH_LONG).show();
+                Log.d(TAG, "onResponse1: "+response.toString());
 
 
 
+                try {
+                    JSONObject arr = new JSONObject(response);
+                    JSONObject arr2 =new JSONObject(arr.get("remarks").toString()) ;
+
+                    for (int i = 0; i<=arr2.length();i++) {
+                        Recipe recipe = new Recipe();
+                        JSONObject arr3 = arr2.getJSONObject("res_"+(i+1));
+                        JSONArray ingredients = arr3.getJSONArray("Ingredients");
+                        recipe.setIngredients(ingredients);
+                        Log.d(TAG, "onResponse2: "+recipe.getIngredients());
+
+                        JSONArray instructions = arr3.getJSONArray("Instructions");
+                        recipe.setInstructions(instructions);
+                        Log.d(TAG, "onResponse2: "+recipe.getInstructions());
+                        Object title = arr3.get("Title");
+                        recipe.setTitle((String) title);
+                        Log.d(TAG, "onResponse2: "+title);
+                        Object recipe_no = arr3.get("recipe_no");
+                        recipe.setRecipeNo((Integer) recipe_no);
+                        Log.d(TAG, "onResponse2: "+recipe_no);
+
+                        recipes.add(recipe);
+
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (response != null){
+//                    Bundle bundle = new Bundle();
+//                    bundle.putStringArray(recipes.);
+//                    RecipeFragment fragInfo = new RecipeFragment();
+//                    fragInfo.setArguments(bundle);
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.frame_layout, RecipeFragment.class, null)
+                            .commit();
                 }else{
 
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ResponsePOJO> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Network Failed"+t+"", Toast.LENGTH_SHORT).show();
             }
-        });
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),error.toString(),Toast.LENGTH_LONG).show();
+            }
+        })
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError
+            {
+                Map<String,String> map=new HashMap<String, String>();
+                map.put("IMG",encodedImage);
+                return map;
+            }
+        };
+
+
+        RequestQueue queue= Volley.newRequestQueue(getApplicationContext());
+        queue.add(request);
+
+
+
+
     }
 }

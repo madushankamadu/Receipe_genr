@@ -37,13 +37,26 @@
         app:layout_constraintBottom_toTopOf="@+id/upload_btn"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageView"
+
+    <FrameLayout
+        android:id="@+id/frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/capture_btn"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="110dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_food"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </FrameLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
