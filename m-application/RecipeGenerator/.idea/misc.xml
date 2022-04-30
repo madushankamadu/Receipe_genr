@@ -4,11 +4,12 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/drawable/ic_food.xml" value="0.1555" />
+        <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/drawable/ic_recipe.xml" value="0.2405" />
         <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/description_dialog.xml" value="0.128" />
         <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/fragment_description.xml" value="0.11666666666666667" />
         <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/fragment_recipe.xml" value="0.2064814814814815" />
-        <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/list_item.xml" value="0.234375" />
+        <entry key="..\:/Users/paknm/AndroidStudioProjects/RecipeGenerator/app/src/main/res/layout/list_item.xml" value="0.264" />
       </map>
     </option>
   </component>
