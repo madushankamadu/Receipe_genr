@@ -1,11 +1,13 @@
 package com.example.recipegenerator;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -19,6 +21,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -53,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     ActivityResultLauncher<Intent> mGetCamera;
     private Bitmap bitmap;
     public static List<Recipe> recipes;
+    private Handler mainHandeler = new Handler();
+    private ProgressDialog progressDialog;
     private static final String url = "http://192.168.43.211/Android%20Tutorials/upload_image.php";
 
     @Override
@@ -141,8 +146,9 @@ public class MainActivity extends AppCompatActivity {
         uploadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 if (bitmap != null ){
-                    uploadImage();
+                    new fetchData().start();
                 }else {
                     Toast.makeText(MainActivity.this,"Please put an image",Toast.LENGTH_SHORT).show();
                 }
@@ -151,6 +157,34 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    class  fetchData extends Thread{
+        @Override
+        public void run() {
+            mainHandeler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog = new ProgressDialog(MainActivity.this);
+                    progressDialog.setMessage("Fetching Data");
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
+                }
+            });
+
+            uploadImage();
+
+            mainHandeler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (progressDialog.isShowing()){
+                        progressDialog.dismiss();
+                        // listAdapter.notifyDataSetChanged();
+                    }
+                }
+            });
+        }
+    }
+
 
     private void uploadImage() {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
